@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Shopping Budget Calculator</title>
+    <!-- Google Fonts: Poppins for headings & Inter for body, labels, and calculations -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        heading: ['Poppins', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            forest: '#205C49',
+                            navy: '#294B78',
+                            amber: '#A96D20',
+                            purple: '#69468D',
+                            bg: '#F5F6F2',
+                            charcoal: '#263238',
+                            secondary: '#59636B',
+                            lightgreen: '#E5F0E8',
+                            success: '#DDF2E3',
+                            error: '#FCE8E6',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom styles for tabular numbers, uniform inputs, and print view */
+        .tabular-nums {
+            font-variant-numeric: tabular-nums;
+        }
+        .uniform-input {
+            height: 48px;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background-color: #ffffff !important;
+                color: #000000 !important;
+            }
+            .print-card {
+                border: 1px solid #d1d5db !important;
+                box-shadow: none !important;
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body class="bg-brand-bg text-brand-charcoal font-sans text-[16px] antialiased selection:bg-brand-lightgreen selection:text-brand-forest overflow-x-hidden">
+
+    <!-- REDESIGNED THREE-GROUP NAVIGATION BAR -->
+    <nav class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-2xs no-print">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 lg:py-0 lg:h-18 flex flex-wrap lg:flex-nowrap items-center justify-between gap-3">
+            
+            <!-- LEFT: SmartBudget MY Logo & Website Name -->
+            <a href="#calculator-section" class="flex items-center gap-2.5 shrink-0 group">
+                <div class="w-10 h-10 rounded-xl bg-brand-forest text-white flex items-center justify-center shadow-xs group-hover:opacity-95 transition-opacity">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                </div>
+                <span class="font-heading font-bold text-lg sm:text-xl text-brand-charcoal tracking-tight">SmartBudget <span class="text-brand-forest">MY</span></span>
+            </a>
+
+            <!-- RIGHT (Mobile order-2, Desktop order-3): Action Controls -->
+            <div class="flex items-center gap-2 order-2 lg:order-3 shrink-0">
+                <button type="button" onclick="loadSampleData()" class="h-10 px-3 sm:px-3.5 text-xs sm:text-sm font-semibold rounded-xl bg-brand-lightgreen text-brand-forest border border-brand-forest/20 hover:bg-brand-forest hover:text-white transition-colors flex items-center gap-1.5" title="Load sample groceries and items">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                    </svg>
+                    <span>Sample Data</span>
+                </button>
+                <button type="button" onclick="window.print()" class="h-10 px-3 text-xs sm:text-sm font-semibold text-brand-charcoal bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-xl transition-colors flex items-center gap-1.5" title="Print Shopping Summary">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
+                    <span class="hidden sm:inline">Print</span>
+                </button>
+                <button type="button" onclick="openResetModal()" class="h-10 px-3 sm:px-3.5 text-xs sm:text-sm font-semibold rounded-xl bg-brand-error text-red-900 border border-red-300 hover:bg-red-200 transition-colors flex items-center gap-1.5" title="Reset Calculator">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    <span>Reset</span>
+                </button>
+            </div>
+
+            <!-- CENTRE (Mobile full-width row order-3, Desktop center order-2): Section Navigation Links -->
+            <div class="w-full lg:w-auto order-3 lg:order-2 flex items-center justify-start sm:justify-center gap-2 overflow-x-auto pb-1 lg:pb-0" id="main-nav-links">
+                <a href="#how-to-use-section" data-section="how-to-use-section" data-color="#294B78" class="nav-tab shrink-0 h-10 px-4 rounded-xl text-[14px] sm:text-[15px] font-semibold flex items-center justify-center gap-2 transition-all hover:opacity-90 shadow-2xs" style="background-color: #294B78; color: #FFFFFF;">
+                    <svg class="w-4 h-4 shrink-0 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <span>How to Use</span>
+                </a>
+
+                <a href="#calculator-section" data-section="calculator-section" data-color="#205C49" class="nav-tab shrink-0 h-10 px-4 rounded-xl text-[14px] sm:text-[15px] font-semibold flex items-center justify-center gap-2 transition-all hover:opacity-90 shadow-2xs" style="background-color: #205C49; color: #FFFFFF;">
+                    <svg class="w-4 h-4 shrink-0 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    <span>Calculator</span>
+                </a>
+
+                <a href="#compare-section" data-section="compare-section" data-color="#A96D20" class="nav-tab shrink-0 h-10 px-4 rounded-xl text-[14px] sm:text-[15px] font-semibold flex items-center justify-center gap-2 transition-all hover:opacity-90 shadow-2xs" style="background-color: #A96D20; color: #FFFFFF;">
+                    <svg class="w-4 h-4 shrink-0 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                    </svg>
+                    <span>Compare Prices</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Custom Notification Banner (Toast) -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Custom Confirmation Modal (Replaces window.confirm) -->
+    <div id="confirm-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-brand-charcoal/50 backdrop-blur-xs p-4 no-print">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
+            <div class="flex items-center gap-3 text-red-900 mb-3">
+                <div class="w-10 h-10 rounded-full bg-brand-error flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <h3 id="modal-title" class="font-heading font-bold text-[18px] text-brand-charcoal">Confirm Action</h3>
+            </div>
+            <p id="modal-message" class="text-[15px] text-brand-secondary mb-6 leading-relaxed">Are you sure you want to reset all data?</p>
+            <div class="flex justify-end gap-3">
+                <button type="button" onclick="closeModal()" class="h-10 px-4 rounded-xl text-sm font-semibold bg-slate-100 text-brand-charcoal hover:bg-slate-200 transition-colors">
+                    Cancel
+                </button>
+                <button type="button" id="modal-confirm-btn" class="h-10 px-4 rounded-xl text-sm font-semibold bg-red-700 text-white hover:bg-red-800 transition-colors shadow-xs">
+                    Yes, Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION A: HOME / INTRODUCTION -->
+    <header class="bg-gradient-to-b from-brand-lightgreen via-brand-bg to-brand-bg pt-8 pb-10 sm:pt-12 sm:pb-12 border-b border-slate-200">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-brand-forest/25 text-brand-forest text-[14px] font-semibold mb-4 shadow-2xs">
+                <span>Mathematics in Everyday Life</span>
+                <span class="text-brand-forest/40">&bull;</span>
+                <span>Calculate &rarr; Compare &rarr; Evaluate &rarr; Decide</span>
+            </div>
+            <h1 class="font-heading font-extrabold text-[28px] sm:text-[34px] text-brand-forest tracking-tight mb-2 leading-tight">
+                Smart Shopping Budget Calculator
+            </h1>
+            <p class="font-heading font-semibold text-[18px] text-brand-charcoal mb-3">
+                Shop Smart, Spend Wisely!
+            </p>
+            <p class="max-w-xl mx-auto text-brand-secondary text-[16px] leading-relaxed mb-6">
+                Plan your shopping expenses, calculate discounts and stay within your budget using mathematics.
+            </p>
+            <div class="flex flex-wrap items-center justify-center gap-3 no-print">
+                <a href="#calculator-section" class="inline-flex items-center gap-2 h-12 px-6 rounded-2xl bg-brand-forest hover:opacity-95 text-white font-semibold text-[16px] shadow-xs transition-all">
+                    <span>Start Shopping</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                    </svg>
+                </a>
+                <a href="#how-to-use-section" class="inline-flex items-center gap-2 h-12 px-5 rounded-2xl bg-white hover:bg-slate-50 text-brand-navy border-2 border-brand-navy/25 font-semibold text-[16px] transition-all">
+                    <span>How to Use</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-10">
+
+        <!-- =================================================================== -->
+        <!-- SECTION 1: HOW TO USE (COMPACT LAYOUT, ACCENT: NAVY BLUE #294B78)   -->
+        <!-- =================================================================== -->
+        <section id="how-to-use-section" class="scroll-mt-24 bg-white rounded-3xl p-5 sm:p-6 shadow-xs border border-slate-200 border-t-4 border-t-brand-navy print-card">
+            <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-200">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-brand-navy text-white flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="font-heading font-bold text-[22px] text-brand-navy leading-tight">How to Use SmartBudget MY</h2>
+                        <p class="text-[14px] text-brand-secondary">A simple guide to getting started.</p>
+                    </div>
+                </div>
+                <a href="#calculator-section" class="h-9 px-3.5 rounded-xl bg-brand-navy hover:opacity-95 text-white text-[14px] font-semibold inline-flex items-center gap-1.5 transition-opacity no-print">
+                    <span>Back to Calculator</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </a>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 mt-4 items-start">
+                <!-- STEP 1: Light Blue (#E9EFF8) -->
+                <div class="p-4 rounded-2xl border border-[#294B78]/15" style="background-color: #E9EFF8;">
+                    <div class="flex items-center gap-2.5 mb-1.5">
+                        <span class="w-7 h-7 rounded-lg bg-[#294B78] text-white font-heading font-bold text-xs flex items-center justify-center shrink-0">1</span>
+                        <svg class="w-4 h-4 text-[#294B78] shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <h3 class="font-heading font-bold text-[16px] text-[#1E3A5F] leading-snug">Set Your Budget</h3>
+                    </div>
+                    <p class="text-[14px] text-[#263238] leading-snug">
+                        Enter the total amount of money you plan to spend. <span class="font-semibold text-[#1E3A5F]">Example: RM100.00</span>
+                    </p>
+                </div>
+
+                <!-- STEP 2: Light Green (#E8F1EA) -->
+                <div class="p-4 rounded-2xl border border-[#205C49]/15" style="background-color: #E8F1EA;">
+                    <div class="flex items-center gap-2.5 mb-1.5">
+                        <span class="w-7 h-7 rounded-lg bg-[#205C49] text-white font-heading font-bold text-xs flex items-center justify-center shrink-0">2</span>
+                        <svg class="w-4 h-4 text-[#205C49] shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                        </svg>
+                        <h3 class="font-heading font-bold text-[16px] text-[#1B493A] leading-snug">Add Shopping Items</h3>
+                    </div>
+                    <p class="text-[14px] text-[#263238] leading-snug">
+                        Enter the item name, unit price, quantity and optional discount. Click Add Item.
+                    </p>
+                </div>
+
+                <!-- STEP 3: Light Amber (#F9EEDC) -->
+                <div class="p-4 rounded-2xl border border-[#A96D20]/15" style="background-color: #F9EEDC;">
+                    <div class="flex items-center gap-2.5 mb-1.5">
+                        <span class="w-7 h-7 rounded-lg bg-[#A96D20] text-white font-heading font-bold text-xs flex items-center justify-center shrink-0">3</span>
+                        <svg class="w-4 h-4 text-[#A96D20] shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                        <h3 class="font-heading font-bold text-[16px] text-[#7D4F14] leading-snug">Review Your Shopping List</h3>
+                    </div>
+                    <p class="text-[14px] text-[#263238] leading-snug">
+                        View your added items, check their costs, and edit or remove items when necessary.
+                    </p>
+                </div>
+
+                <!-- STEP 4: Light Purple (#F0E9F7) -->
+                <div class="p-4 rounded-2xl border border-[#69468D]/15" style="background-color: #F0E9F7;">
+                    <div class="flex items-center gap-2.5 mb-1.5">
+                        <span class="w-7 h-7 rounded-lg bg-[#69468D] text-white font-heading font-bold text-xs flex items-center justify-center shrink-0">4</span>
+                        <svg class="w-4 h-4 text-[#69468D] shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                        <h3 class="font-heading font-bold text-[16px] text-[#4C3168] leading-snug">Check Your Shopping Summary</h3>
+                    </div>
+                    <p class="text-[14px] text-[#263238] leading-snug">
+                        View your total expenses, total discounts and remaining budget.
+                    </p>
+                </div>
+
+                <!-- STEP 5: Light Blue-Grey (#E5EDF1) -->
+                <div class="p-4 rounded-2xl border border-[#3B5B6B]/15 md:col-span-2" style="background-color: #E5EDF1;">
+                    <div class="flex items-center gap-2.5 mb-1.5">
+                        <span class="w-7 h-7 rounded-lg bg-[#3B5B6B] text-white font-heading font-bold text-xs flex items-center justify-center shrink-0">5</span>
+                        <svg class="w-4 h-4 text-[#3B5B6B] shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                        </svg>
+                        <h3 class="font-heading font-bold text-[16px] text-[#26404D] leading-snug">Compare Product Prices</h3>
+                    </div>
+                    <p class="text-[14px] text-[#263238] leading-snug">
+                        Enter the product size and price from two stores. Compare their price per unit to find better value.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- SECTION 2: CALCULATOR SECTION (ACCENT: DEEP FOREST GREEN #205C49)    -->
+        <!-- =================================================================== -->
+        <div id="calculator-section" class="scroll-mt-24 space-y-6">
+            <!-- Section Identity Header -->
+            <div class="flex items-center gap-3 pb-2 border-b-2 border-brand-forest/20">
+                <div class="w-10 h-10 rounded-xl bg-brand-forest text-white flex items-center justify-center shrink-0 shadow-2xs">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="font-heading font-bold text-[22px] text-brand-forest leading-tight">Shopping Budget Calculator</h2>
+                    <p class="text-[15px] text-brand-secondary">Set your spending limit, add items, and track your remaining budget in real time</p>
+                </div>
+            </div>
+
+            <!-- STEP 1: SET SHOPPING BUDGET -->
+            <section class="bg-white rounded-3xl p-6 sm:p-7 shadow-xs border border-slate-200 border-t-4 border-t-brand-forest print-card">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+                    <div class="flex items-center gap-3">
+                        <span class="w-9 h-9 rounded-full bg-brand-forest text-white font-heading font-bold text-sm flex items-center justify-center shrink-0">1</span>
+                        <div>
+                            <h3 class="font-heading font-bold text-[18px] text-brand-forest">Set Shopping Budget</h3>
+                            <p class="text-[15px] text-brand-secondary">Enter your available spending limit in Malaysian Ringgit (RM)</p>
+                        </div>
+                    </div>
+
+                    <!-- Quick Budget Presets -->
+                    <div class="flex flex-wrap items-center gap-1.5 no-print">
+                        <span class="text-[14px] font-medium text-brand-secondary mr-1 hidden sm:inline">Quick set:</span>
+                        <button type="button" onclick="setQuickBudget(50)" class="h-9 px-3 rounded-xl bg-brand-lightgreen hover:bg-brand-forest text-brand-forest hover:text-white text-xs font-bold transition-colors">RM 50</button>
+                        <button type="button" onclick="setQuickBudget(100)" class="h-9 px-3 rounded-xl bg-brand-lightgreen hover:bg-brand-forest text-brand-forest hover:text-white text-xs font-bold transition-colors">RM 100</button>
+                        <button type="button" onclick="setQuickBudget(150)" class="h-9 px-3 rounded-xl bg-brand-lightgreen hover:bg-brand-forest text-brand-forest hover:text-white text-xs font-bold transition-colors">RM 150</button>
+                        <button type="button" onclick="setQuickBudget(300)" class="h-9 px-3 rounded-xl bg-brand-lightgreen hover:bg-brand-forest text-brand-forest hover:text-white text-xs font-bold transition-colors">RM 300</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="budget-input" class="block text-[15px] font-semibold text-brand-charcoal mb-2">Available Shopping Budget (RM)</label>
+                    <div class="relative max-w-md">
+                        <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-brand-forest font-bold select-none">
+                            RM
+                        </span>
+                        <input
+                            type="number"
+                            id="budget-input"
+                            min="0.01"
+                            step="0.01"
+                            value="150.00"
+                            placeholder="e.g., 100.00"
+                            class="w-full h-13 pl-12 pr-4 bg-white border-2 border-slate-300 rounded-2xl text-2xl font-extrabold text-brand-forest tabular-nums focus:outline-none focus:border-brand-forest transition-all"
+                        >
+                    </div>
+                    <p id="budget-error" class="hidden mt-2 px-3.5 py-2 rounded-xl bg-brand-error text-red-900 text-[14px] font-semibold">
+                        Please enter a valid positive budget greater than RM 0.00.
+                    </p>
+                </div>
+            </section>
+
+            <!-- STEP 2: ADD SHOPPING ITEMS -->
+            <section class="bg-white rounded-3xl p-6 sm:p-7 shadow-xs border border-slate-200 border-t-4 border-t-brand-forest no-print">
+                <div class="flex items-center gap-3 mb-5">
+                    <span class="w-9 h-9 rounded-full bg-brand-forest text-white font-heading font-bold text-sm flex items-center justify-center shrink-0">2</span>
+                    <div>
+                        <h3 class="font-heading font-bold text-[18px] text-brand-forest">Add Shopping Items</h3>
+                        <p class="text-[15px] text-brand-secondary">Enter item details below to add them to your shopping list</p>
+                    </div>
+                </div>
+
+                <form id="add-item-form" novalidate>
+                    <!-- Equally Aligned Input Grid (All Labels 15px, Equal Margin mb-2, Identical Input Height 48px) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-start">
+                        <!-- Item Name -->
+                        <div class="sm:col-span-5">
+                            <label for="item-name" class="block text-[15px] font-semibold text-brand-charcoal mb-2 leading-snug">Item Name</label>
+                            <input
+                                type="text"
+                                id="item-name"
+                                placeholder="e.g., Fresh Milk 1L"
+                                class="uniform-input w-full px-4 bg-white border-2 border-slate-300 rounded-xl text-[16px] text-brand-charcoal placeholder:text-slate-400 focus:outline-none focus:border-brand-forest transition-all"
+                            >
+                        </div>
+
+                        <!-- Unit Price (RM) -->
+                        <div class="sm:col-span-3">
+                            <label for="item-price" class="block text-[15px] font-semibold text-brand-charcoal mb-2 leading-snug">Unit Price (RM)</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-[15px] font-bold text-brand-forest select-none">RM</span>
+                                <input
+                                    type="number"
+                                    id="item-price"
+                                    min="0"
+                                    step="0.01"
+                                    placeholder="0.00"
+                                    class="uniform-input w-full pl-11 pr-3.5 bg-white border-2 border-slate-300 rounded-xl text-[16px] text-brand-charcoal placeholder:text-slate-400 tabular-nums focus:outline-none focus:border-brand-forest transition-all"
+                                >
+                            </div>
+                        </div>
+
+                        <!-- Quantity -->
+                        <div class="sm:col-span-2">
+                            <label for="item-qty" class="block text-[15px] font-semibold text-brand-charcoal mb-2 leading-snug">Quantity</label>
+                            <input
+                                type="number"
+                                id="item-qty"
+                                min="1"
+                                step="1"
+                                value="1"
+                                placeholder="1"
+                                class="uniform-input w-full px-3.5 bg-white border-2 border-slate-300 rounded-xl text-[16px] text-brand-charcoal placeholder:text-slate-400 tabular-nums focus:outline-none focus:border-brand-forest transition-all"
+                            >
+                        </div>
+
+                        <!-- Discount (%) -->
+                        <div class="sm:col-span-2">
+                            <label for="item-discount" class="block text-[15px] font-semibold text-brand-charcoal mb-2 leading-snug">Discount (%)</label>
+                            <div class="relative">
+                                <input
+                                    type="number"
+                                    id="item-discount"
+                                    min="0"
+                                    max="100"
+                                    step="0.01"
+                                    placeholder="0"
+                                    class="uniform-input w-full pl-3.5 pr-7 bg-white border-2 border-slate-300 rounded-xl text-[16px] text-brand-charcoal placeholder:text-slate-400 tabular-nums focus:outline-none focus:border-brand-forest transition-all"
+                                >
+                                <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-[15px] font-bold text-brand-secondary select-none">%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Aligned Action Bar: Live Cost Preview + Add Item Button -->
+                    <div class="mt-5 pt-4 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div class="text-[15px]">
+                            <p id="item-form-error" class="px-3.5 py-2 rounded-xl bg-brand-error text-red-900 font-semibold hidden mb-1" role="alert"></p>
+                            <p id="item-live-preview" class="text-brand-charcoal font-medium tabular-nums">
+                                Calculated Item Cost: <span class="font-extrabold text-[18px] text-brand-forest">RM 0.00</span>
+                            </p>
+                        </div>
+
+                        <button
+                            type="submit"
+                            class="w-full sm:w-auto h-12 px-6 bg-brand-forest hover:opacity-95 text-white font-semibold text-[16px] rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 shrink-0"
+                        >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                            </svg>
+                            <span>Add Item</span>
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- STEP 3: SHOPPING LIST -->
+            <section class="bg-white rounded-3xl p-6 sm:p-7 shadow-xs border border-slate-200 border-t-4 border-t-brand-forest print-card">
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+                    <div class="flex items-center gap-3">
+                        <span class="w-9 h-9 rounded-full bg-brand-forest text-white font-heading font-bold text-sm flex items-center justify-center shrink-0">3</span>
+                        <div>
+                            <h3 class="font-heading font-bold text-[18px] text-brand-forest">Shopping List</h3>
+                            <p class="text-[15px] text-brand-secondary">Edit any field directly or remove items — totals update automatically</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 no-print">
+                        <span id="item-count-badge" class="px-3.5 py-1.5 rounded-full bg-brand-lightgreen text-brand-forest text-[14px] font-bold">0 items</span>
+                        <button type="button" onclick="confirmClearList()" id="clear-list-btn" class="h-9 px-3.5 rounded-xl text-[14px] font-semibold text-brand-forest bg-brand-lightgreen hover:bg-brand-error hover:text-red-900 transition-colors">
+                            Clear List
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div id="empty-list-state" class="text-center py-10 px-4 rounded-2xl border-2 border-dashed border-slate-300 bg-brand-bg">
+                    <div class="w-12 h-12 rounded-2xl bg-brand-lightgreen text-brand-forest flex items-center justify-center mx-auto mb-3">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                        </svg>
+                    </div>
+                    <h4 class="font-heading font-bold text-[18px] text-brand-charcoal mb-1">No items in your shopping list yet</h4>
+                    <p class="text-[15px] text-brand-secondary max-w-sm mx-auto mb-4">
+                        Use Step 2 above to add items, or load sample groceries to see how the calculator works.
+                    </p>
+                    <button type="button" onclick="loadSampleData()" class="h-10 px-4 rounded-xl bg-brand-forest hover:opacity-95 text-white text-[14px] font-semibold transition-all no-print">
+                        Load Sample Shopping Items
+                    </button>
+                </div>
+
+                <!-- Clean Responsive Table -->
+                <div id="items-table-container" class="hidden overflow-x-auto -mx-2 sm:mx-0">
+                    <table class="w-full text-left border-collapse min-w-[620px]">
+                        <thead>
+                            <tr class="border-b-2 border-slate-200 text-[14px] font-bold text-brand-charcoal uppercase tracking-wider bg-brand-bg">
+                                <th class="py-3 px-3 rounded-tl-xl">Item Name</th>
+                                <th class="py-3 px-3 w-32">Unit Price (RM)</th>
+                                <th class="py-3 px-3 w-24">Quantity</th>
+                                <th class="py-3 px-3 w-28">Discount (%)</th>
+                                <th class="py-3 px-3 text-right">Final Item Cost</th>
+                                <th class="py-3 px-3 text-center w-24 rounded-tr-xl no-print">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="shopping-list-body" class="divide-y divide-slate-200 text-[16px]">
+                            <!-- Rows injected dynamically by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- STEP 4: SHOPPING SUMMARY -->
+            <section class="bg-white rounded-3xl p-6 sm:p-8 shadow-xs border border-slate-200 border-t-4 border-t-brand-forest print-card">
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+                    <div class="flex items-center gap-3">
+                        <span class="w-9 h-9 rounded-full bg-brand-forest text-white font-heading font-bold text-sm flex items-center justify-center shrink-0">4</span>
+                        <div>
+                            <h3 class="font-heading font-bold text-[18px] text-brand-forest">Shopping Summary</h3>
+                            <p class="text-[15px] text-brand-secondary">Complete breakdown of your expenses and remaining budget</p>
+                        </div>
+                    </div>
+
+                    <!-- Status Pill -->
+                    <div id="status-badge" class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[14px] font-bold bg-brand-success text-brand-forest">
+                        <span id="status-dot" class="w-2.5 h-2.5 rounded-full bg-brand-forest"></span>
+                        <span id="status-text">Within Budget</span>
+                    </div>
+                </div>
+
+                <!-- PROMINENT REMAINING BUDGET HIGHLIGHT CARD -->
+                <div id="remaining-card" class="rounded-2xl p-5 sm:p-6 bg-brand-success border border-brand-forest/25 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors">
+                    <div>
+                        <span id="remaining-label" class="block text-[14px] font-bold uppercase tracking-wider text-brand-forest mb-1">
+                            Remaining Budget
+                        </span>
+                        <p id="status-explanation" class="text-[15px] text-brand-charcoal font-medium">
+                            Your planned expenses are below your budget. You still have funds available.
+                        </p>
+                    </div>
+                    <div class="sm:text-right shrink-0">
+                        <span id="summary-remaining" class="font-heading font-extrabold text-3xl sm:text-4xl text-brand-forest tabular-nums tracking-tight">
+                            RM 150.00
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Supporting Totals Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                    <div class="p-4 rounded-2xl bg-brand-bg border border-slate-200">
+                        <span class="block text-[15px] font-medium text-brand-secondary mb-1">Total Original Cost</span>
+                        <span id="summary-original" class="font-bold text-xl text-brand-charcoal tabular-nums">RM 0.00</span>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-brand-lightgreen border border-brand-forest/20">
+                        <span class="block text-[15px] font-medium text-brand-forest mb-1">Total Discount</span>
+                        <span id="summary-discount" class="font-bold text-xl text-brand-forest tabular-nums">- RM 0.00</span>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-brand-bg border border-slate-200">
+                        <span class="block text-[15px] font-medium text-brand-secondary mb-1">Total Shopping Expenses</span>
+                        <span id="summary-expenses" class="font-extrabold text-xl text-brand-forest tabular-nums">RM 0.00</span>
+                    </div>
+                </div>
+
+                <!-- Budget Usage Progress Bar -->
+                <div class="bg-brand-bg rounded-2xl p-4 border border-slate-200">
+                    <div class="flex justify-between items-center text-[15px] font-bold mb-2">
+                        <span class="text-brand-charcoal">Budget Usage Percentage</span>
+                        <span id="summary-percentage" class="text-brand-forest tabular-nums">0.00%</span>
+                    </div>
+                    <div class="w-full h-3.5 bg-white border border-slate-300 rounded-full overflow-hidden p-0.5">
+                        <div id="usage-bar" class="h-full rounded-full bg-brand-forest transition-all duration-300" style="width: 0%;"></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- =================================================================== -->
+        <!-- SECTION 3: COMPARE PRODUCT PRICES (ACCENT: WARM AMBER #A96D20)      -->
+        <!-- =================================================================== -->
+        <section id="compare-section" class="scroll-mt-24 bg-white rounded-3xl p-6 sm:p-8 shadow-xs border border-slate-200 border-t-4 border-t-brand-amber print-card">
+            <div class="flex items-center gap-3 pb-4 border-b border-slate-200">
+                <div class="w-10 h-10 rounded-xl bg-brand-amber text-white flex items-center justify-center shrink-0 shadow-2xs">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="font-heading font-bold text-[22px] text-brand-amber leading-tight">Compare Product Prices</h2>
+                    <p class="text-[15px] text-brand-secondary">Compare prices between two stores to find the better value.</p>
+                </div>
+            </div>
+
+            <!-- Single Product Name Input at Top -->
+            <div class="mt-6 p-5 rounded-2xl bg-brand-bg border border-slate-200">
+                <label for="compare-product-name" class="block text-[15px] font-semibold text-brand-charcoal mb-2">Product Name</label>
+                <input
+                    type="text"
+                    id="compare-product-name"
+                    value="Cooking Oil"
+                    placeholder="e.g., Cooking Oil, Rice, Fresh Milk"
+                    class="uniform-input w-full px-4 bg-white border-2 border-slate-300 rounded-xl text-[16px] text-brand-charcoal placeholder:text-slate-400 focus:outline-none focus:border-brand-amber transition-all"
+                >
+            </div>
+
+            <!-- Equally Aligned Side-by-Side Store Comparison Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5 items-stretch">
+                <!-- STORE A -->
+                <div class="rounded-2xl bg-brand-bg border border-slate-200 p-5 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="px-3.5 py-1 rounded-xl bg-brand-amber text-white font-heading font-bold text-[14px]">Store A</span>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div>
+                                <label for="storeA-name" class="block text-[15px] font-semibold text-brand-charcoal mb-2">Store Name</label>
+                                <input type="text" id="storeA-name" value="Store A" placeholder="e.g., Econsave / Store A" class="uniform-input w-full px-4 bg-white border-2 border-slate-300 rounded-xl text-[16px] text-brand-charcoal focus:outline-none focus:border-brand-amber">
+                            </div>
+
+                            <div class="grid grid-cols-12 gap-3">
+                                <div class="col-span-7">
+                                    <label for="storeA-size" class="block text-[15px] font-semibold text-brand-charcoal mb-2">Product Size</label>
+                                    <input type="number" id="storeA-size" min="0.01" step="any" value="1" placeholder="1" class="uniform-input w-full px-4 bg-white border-2 border-slate-300 rounded-xl text-[16px] tabular-nums text-brand-charcoal focus:outline-none focus:border-brand-amber">
+                                </div>
+                                <div class="col-span-5">
+                                    <label for="storeA-unit" class="block text-[15px] font-semibold text-brand-charcoal mb-2">Unit</label>
+                                    <select id="storeA-unit" class="uniform-input w-full px-3 bg-white border-2 border-slate-300 rounded-xl text-[16px] text-brand-charcoal focus:outline-none focus:border-brand-amber">
+                                        <option value="kg" selected>kg</option>
+                                        <option value="g">g</option>
+                                        <option value="L">L</option>
+                                        <option value="ml">ml</option>
+                                        <option value="pcs">pieces</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="storeA-price" class="block text-[15px] font-semibold text-brand-charcoal mb-2">Product Price (RM)</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-[15px] font-bold text-brand-amber select-none">RM</span>
+                                    <input type="number" id="storeA-price" min="0.01" step="0.01" value="7.80" placeholder="0.00" class="uniform-input w-full pl-11 pr-4 bg-white border-2 border-slate-300 rounded-xl text-[16px] tabular-nums text-brand-charcoal focus:outline-none focus:border-brand-amber">
+                                </div>
+                            </div>
+
+                            <p id="storeA-error" class="hidden px-3.5 py-2 rounded-xl bg-brand-error text-red-900 text-[14px] font-semibold"></p>
+                        </div>
+                    </div>
+
+                    <!-- Store A Unit Price Display -->
+                    <div class="mt-5 pt-4 border-t border-slate-200 flex items-center justify-between bg-white px-4 py-3.5 rounded-xl border border-brand-amber/30">
+                        <span id="storeA-unit-label" class="text-[15px] font-semibold text-brand-charcoal">Price per kg:</span>
+                        <span id="storeA-unit-price" class="font-heading font-extrabold text-[18px] text-brand-amber tabular-nums">RM 7.80</span>
+                    </div>
+                </div>
+
+                <!-- STORE B -->
+                <div class="rounded-2xl bg-brand-bg border border-slate-200 p-5 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="px-3.5 py-1 rounded-xl bg-brand-charcoal text-white font-heading font-bold text-[14px]">Store B</span>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div>
+                                <label for="storeB-name" class="block text-[15px] font-semibold text-brand-charcoal mb-2">Store Name</label>
+                                <input type="text" id="storeB-name" value="Store B" placeholder="e.g., Mydin / Store B" class="uniform-input w-full px-4 bg-white border-2 border-slate-300 rounded-xl text-[16px] text-brand-charcoal focus:outline-none focus:border-brand-amber">
+                            </div>
+
+                            <div class="grid grid-cols-12 gap-3">
+                                <div class="col-span-7">
+                                    <label for="storeB-size" class="block text-[15px] font-semibold text-brand-charcoal mb-2">Product Size</label>
+                                    <input type="number" id="storeB-size" min="0.01" step="any" value="3" placeholder="3" class="uniform-input w-full px-4 bg-white border-2 border-slate-300 rounded-xl text-[16px] tabular-nums text-brand-charcoal focus:outline-none focus:border-brand-amber">
+                                </div>
+                                <div class="col-span-5">
+                                    <label for="storeB-unit" class="block text-[15px] font-semibold text-brand-charcoal mb-2">Unit</label>
+                                    <select id="storeB-unit" class="uniform-input w-full px-3 bg-white border-2 border-slate-300 rounded-xl text-[16px] text-brand-charcoal focus:outline-none focus:border-brand-amber">
+                                        <option value="kg" selected>kg</option>
+                                        <option value="g">g</option>
+                                        <option value="L">L</option>
+                                        <option value="ml">ml</option>
+                                        <option value="pcs">pieces</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="storeB-price" class="block text-[15px] font-semibold text-brand-charcoal mb-2">Product Price (RM)</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-[15px] font-bold text-brand-amber select-none">RM</span>
+                                    <input type="number" id="storeB-price" min="0.01" step="0.01" value="21.50" placeholder="0.00" class="uniform-input w-full pl-11 pr-4 bg-white border-2 border-slate-300 rounded-xl text-[16px] tabular-nums text-brand-charcoal focus:outline-none focus:border-brand-amber">
+                                </div>
+                            </div>
+
+                            <p id="storeB-error" class="hidden px-3.5 py-2 rounded-xl bg-brand-error text-red-900 text-[14px] font-semibold"></p>
+                        </div>
+                    </div>
+
+                    <!-- Store B Unit Price Display -->
+                    <div class="mt-5 pt-4 border-t border-slate-200 flex items-center justify-between bg-white px-4 py-3.5 rounded-xl border border-brand-amber/30">
+                        <span id="storeB-unit-label" class="text-[15px] font-semibold text-brand-charcoal">Price per kg:</span>
+                        <span id="storeB-unit-price" class="font-heading font-extrabold text-[18px] text-brand-amber tabular-nums">RM 7.17</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Simple Comparison Result Below Both Store Cards -->
+            <div id="comparison-result-box" class="mt-6 rounded-2xl bg-amber-50 border border-brand-amber/35 p-5 sm:p-6">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                    <span class="text-[14px] font-bold uppercase tracking-wider text-brand-amber">Comparison Result</span>
+                    <span id="comparison-winner-pill" class="px-3.5 py-1 rounded-full bg-brand-amber text-white text-[14px] font-bold">
+                        Best Value: Store B
+                    </span>
+                </div>
+                <p id="comparison-explanation" class="font-heading font-bold text-[18px] text-brand-charcoal mb-1.5">
+                    Store B offers better value because its price per kg is lower than Store A.
+                </p>
+                <p id="comparison-savings-line" class="text-[16px] font-bold text-brand-amber tabular-nums">
+                    You save RM 0.63 per kg by choosing Store B.
+                </p>
+                <p id="comparison-same-qty-line" class="hidden mt-1 text-[15px] text-brand-charcoal font-medium">
+                </p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-8 mt-12">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[14px] text-brand-secondary">
+            <p class="font-bold text-brand-charcoal">Smart Shopping Budget Calculator &mdash; Numbers &amp; Operations Project</p>
+            <p>All calculations in Malaysian Ringgit (RM) &bull; Accurate to 2 decimal places</p>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        /**
+         * ============================================================================
+         * SMART SHOPPING BUDGET CALCULATOR - CORE JAVASCRIPT LOGIC
+         * Mathematical Process: Calculate -> Compare -> Evaluate -> Decide
+         * ============================================================================
+         */
+
+        // --- 1. PRECISION & CURRENCY HELPER FUNCTIONS ---
+
+        function roundTwoDecimals(num) {
+            if (isNaN(num) || !isFinite(num)) return 0;
+            return Math.round((num + Number.EPSILON) * 100) / 100;
+        }
+
+        function formatRM(amount) {
+            const clean = roundTwoDecimals(amount);
+            const isNegative = clean < 0;
+            const absVal = Math.abs(clean).toFixed(2);
+            return isNegative ? `-RM ${absVal}` : `RM ${absVal}`;
+        }
+
+        function escapeHTML(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // --- 2. APPLICATION STATE ---
+        let state = {
+            budget: 150.00,
+            items: [] // Array of { id, name, price, qty, discount }
+        };
+
+        // --- 3. DOM ELEMENT REFERENCES ---
+        const budgetInput = document.getElementById('budget-input');
+        const budgetError = document.getElementById('budget-error');
+
+        const addItemForm = document.getElementById('add-item-form');
+        const itemNameInput = document.getElementById('item-name');
+        const itemPriceInput = document.getElementById('item-price');
+        const itemQtyInput = document.getElementById('item-qty');
+        const itemDiscountInput = document.getElementById('item-discount');
+        const itemFormError = document.getElementById('item-form-error');
+        const itemLivePreview = document.getElementById('item-live-preview');
+
+        const emptyListState = document.getElementById('empty-list-state');
+        const itemsTableContainer = document.getElementById('items-table-container');
+        const shoppingListBody = document.getElementById('shopping-list-body');
+        const itemCountBadge = document.getElementById('item-count-badge');
+
+        // --- 4. MATHEMATICAL CALCULATION ENGINE ---
+
+        function calculateItemMetrics(price, qty, discountPercent) {
+            const safePrice = Math.max(0, Number(price) || 0);
+            const safeQty = Math.max(1, Math.floor(Number(qty) || 1));
+            const safeDiscount = Math.min(100, Math.max(0, Number(discountPercent) || 0));
+
+            const subtotal = roundTwoDecimals(safePrice * safeQty);
+            const discountAmount = roundTwoDecimals(subtotal * (safeDiscount / 100));
+            const finalCost = roundTwoDecimals(subtotal - discountAmount);
+
+            return { subtotal, discountAmount, finalCost };
+        }
+
+        function updateCalculator() {
+            let totalOriginal = 0;
+            let totalDiscount = 0;
+            let totalExpenses = 0;
+
+            state.items.forEach(item => {
+                const metrics = calculateItemMetrics(item.price, item.qty, item.discount);
+                totalOriginal = roundTwoDecimals(totalOriginal + metrics.subtotal);
+                totalDiscount = roundTwoDecimals(totalDiscount + metrics.discountAmount);
+                totalExpenses = roundTwoDecimals(totalExpenses + metrics.finalCost);
+            });
+
+            const budget = state.budget;
+            const remainingBudget = roundTwoDecimals(budget - totalExpenses);
+
+            let usagePercent = 0;
+            if (budget > 0) {
+                usagePercent = roundTwoDecimals((totalExpenses / budget) * 100);
+            } else if (totalExpenses > 0) {
+                usagePercent = 100;
+            }
+
+            // Update Item Count Badge
+            const count = state.items.length;
+            itemCountBadge.textContent = `${count} ${count === 1 ? 'item' : 'items'}`;
+
+            // Update Summary Values
+            document.getElementById('summary-original').textContent = formatRM(totalOriginal);
+            document.getElementById('summary-discount').textContent = `- ${formatRM(totalDiscount)}`;
+            document.getElementById('summary-expenses').textContent = formatRM(totalExpenses);
+            document.getElementById('summary-remaining').textContent = formatRM(remainingBudget);
+            document.getElementById('summary-percentage').textContent = `${usagePercent.toFixed(2)}%`;
+
+            // Update Budget Status & Visual Indicators
+            updateBudgetStatusUI(budget, totalExpenses, remainingBudget, usagePercent);
+        }
+
+        function updateBudgetStatusUI(budget, totalExpenses, remainingBudget, usagePercent) {
+            const badge = document.getElementById('status-badge');
+            const dot = document.getElementById('status-dot');
+            const text = document.getElementById('status-text');
+            const explanation = document.getElementById('status-explanation');
+            const bar = document.getElementById('usage-bar');
+            const remainingCard = document.getElementById('remaining-card');
+            const remainingLabel = document.getElementById('remaining-label');
+            const remainingVal = document.getElementById('summary-remaining');
+
+            const cappedWidth = Math.min(100, Math.max(0, usagePercent));
+            bar.style.width = `${cappedWidth}%`;
+
+            if (budget <= 0) {
+                badge.className = 'inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[14px] font-bold bg-amber-100 text-amber-900';
+                dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-600';
+                text.textContent = 'Set Valid Budget';
+                bar.className = 'h-full rounded-full bg-amber-600 transition-all duration-300';
+                remainingCard.className = 'rounded-2xl p-5 sm:p-6 bg-brand-cream border border-brand-deep/15 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors';
+                remainingLabel.className = 'block text-[14px] font-bold uppercase tracking-wider text-brand-charcoal mb-1';
+                remainingLabel.textContent = 'Remaining Budget';
+                explanation.className = 'text-[15px] text-brand-charcoal/85';
+                explanation.textContent = 'Enter a positive budget in Step 1 to calculate your remaining balance.';
+                remainingVal.className = 'font-heading font-extrabold text-3xl sm:text-4xl text-brand-charcoal tabular-nums tracking-tight';
+                return;
+            }
+
+            if (totalExpenses < budget) {
+                // WITHIN BUDGET
+                badge.className = 'inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[14px] font-bold bg-brand-success text-brand-forest';
+                dot.className = 'w-2.5 h-2.5 rounded-full bg-brand-forest';
+                text.textContent = 'Within Budget';
+                bar.className = 'h-full rounded-full bg-brand-forest transition-all duration-300';
+
+                remainingCard.className = 'rounded-2xl p-5 sm:p-6 bg-brand-success border border-brand-forest/25 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors';
+                remainingLabel.className = 'block text-[14px] font-bold uppercase tracking-wider text-brand-forest mb-1';
+                remainingLabel.textContent = 'Remaining Budget';
+                explanation.className = 'text-[15px] text-brand-charcoal font-medium';
+                explanation.textContent = 'Your shopping expenses are within your budget. You still have funds available.';
+                remainingVal.className = 'font-heading font-extrabold text-3xl sm:text-4xl text-brand-forest tabular-nums tracking-tight';
+            } else if (totalExpenses === budget) {
+                // BUDGET FULLY USED
+                badge.className = 'inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[14px] font-bold bg-amber-100 text-amber-900';
+                dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-600';
+                text.textContent = 'Budget Fully Used';
+                bar.className = 'h-full rounded-full bg-amber-600 transition-all duration-300';
+
+                remainingCard.className = 'rounded-2xl p-5 sm:p-6 bg-amber-50 border border-amber-300 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors';
+                remainingLabel.className = 'block text-[14px] font-bold uppercase tracking-wider text-amber-900 mb-1';
+                remainingLabel.textContent = 'Remaining Budget';
+                explanation.className = 'text-[15px] text-amber-950';
+                explanation.textContent = 'Exact match! You have used 100% of your available shopping budget.';
+                remainingVal.className = 'font-heading font-extrabold text-3xl sm:text-4xl text-amber-900 tabular-nums tracking-tight';
+            } else {
+                // OVER BUDGET
+                const excess = roundTwoDecimals(totalExpenses - budget);
+                badge.className = 'inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[14px] font-bold bg-brand-error text-red-900';
+                dot.className = 'w-2.5 h-2.5 rounded-full bg-red-700';
+                text.textContent = 'Over Budget';
+                bar.className = 'h-full rounded-full bg-red-700 transition-all duration-300';
+
+                remainingCard.className = 'rounded-2xl p-5 sm:p-6 bg-brand-error border border-red-300 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors';
+                remainingLabel.className = 'block text-[14px] font-bold uppercase tracking-wider text-red-900 mb-1';
+                remainingLabel.textContent = 'Over Budget By';
+                explanation.className = 'text-[15px] text-red-950';
+                explanation.textContent = 'Your total expenses exceed your set budget. Consider reducing quantities or removing items.';
+                remainingVal.textContent = formatRM(excess);
+                remainingVal.className = 'font-heading font-extrabold text-3xl sm:text-4xl text-red-900 tabular-nums tracking-tight';
+            }
+        }
+
+        // --- 5. SHOPPING LIST RENDERING & CRUD OPERATIONS ---
+
+        function renderShoppingList() {
+            if (state.items.length === 0) {
+                emptyListState.classList.remove('hidden');
+                itemsTableContainer.classList.add('hidden');
+                shoppingListBody.innerHTML = '';
+                updateCalculator();
+                return;
+            }
+
+            emptyListState.classList.add('hidden');
+            itemsTableContainer.classList.remove('hidden');
+
+            shoppingListBody.innerHTML = state.items.map((item) => {
+                const metrics = calculateItemMetrics(item.price, item.qty, item.discount);
+                return `
+                    <tr class="hover:bg-cream-50/80 transition-colors" data-id="${item.id}">
+                        <td class="py-3 px-3">
+                            <input
+                                type="text"
+                                id="edit-name-${item.id}"
+                                value="${escapeHTML(item.name)}"
+                                aria-label="Edit item name"
+                                onchange="editItem(${item.id}, 'name', this.value)"
+                                class="w-full min-w-[140px] px-2.5 py-1.5 bg-transparent hover:bg-white focus:bg-white border border-transparent hover:border-sage-200 focus:border-sage-500 rounded-xl font-medium text-slate-800 focus:outline-none transition-all"
+                            >
+                        </td>
+                        <td class="py-3 px-3">
+                            <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value="${Number(item.price).toFixed(2)}"
+                                aria-label="Edit unit price"
+                                oninput="editItem(${item.id}, 'price', this.value)"
+                                class="w-28 px-2.5 py-1.5 bg-cream-50 focus:bg-white border border-sage-200/80 focus:border-sage-500 rounded-xl tabular-nums text-slate-800 focus:outline-none"
+                            >
+                        </td>
+                        <td class="py-3 px-3">
+                            <input
+                                type="number"
+                                min="1"
+                                step="1"
+                                value="${item.qty}"
+                                aria-label="Edit quantity"
+                                oninput="editItem(${item.id}, 'qty', this.value)"
+                                class="w-20 px-2.5 py-1.5 bg-cream-50 focus:bg-white border border-sage-200/80 focus:border-sage-500 rounded-xl tabular-nums text-slate-800 focus:outline-none"
+                            >
+                        </td>
+                        <td class="py-3 px-3">
+                            <input
+                                type="number"
+                                min="0"
+                                max="100"
+                                step="0.01"
+                                value="${item.discount}"
+                                aria-label="Edit discount percentage"
+                                oninput="editItem(${item.id}, 'discount', this.value)"
+                                class="w-24 px-2.5 py-1.5 bg-cream-50 focus:bg-white border border-sage-200/80 focus:border-sage-500 rounded-xl tabular-nums text-slate-800 focus:outline-none"
+                            >
+                        </td>
+                        <td class="py-3 px-3 text-right tabular-nums">
+                            <span class="font-bold text-slate-900 item-final block">${formatRM(metrics.finalCost)}</span>
+                            <span class="text-[11px] text-sage-700 item-saved-note ${metrics.discountAmount > 0 ? '' : 'hidden'}">
+                                Saved ${formatRM(metrics.discountAmount)}
+                            </span>
+                        </td>
+                        <td class="py-3 px-3 text-center no-print">
+                            <div class="inline-flex items-center gap-1">
+                                <button
+                                    type="button"
+                                    onclick="focusItemEdit(${item.id})"
+                                    class="p-1.5 text-slate-400 hover:text-sage-700 hover:bg-sage-50 rounded-lg transition-colors"
+                                    title="Edit item"
+                                >
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                </button>
+                                <button
+                                    type="button"
+                                    onclick="removeItem(${item.id})"
+                                    class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                                    title="Delete item"
+                                >
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            updateCalculator();
+        }
+
+        function focusItemEdit(id) {
+            const input = document.getElementById(`edit-name-${id}`);
+            if (input) {
+                input.focus();
+                input.select();
+            }
+        }
+
+        function editItem(id, field, rawValue) {
+            const itemIndex = state.items.findIndex(i => i.id === id);
+            if (itemIndex === -1) return;
+
+            const item = state.items[itemIndex];
+
+            if (field === 'name') {
+                const trimmed = rawValue.trim();
+                if (!trimmed) {
+                    showToast('Item name cannot be empty.', 'error');
+                    renderShoppingList();
+                    return;
+                }
+                item.name = trimmed;
+            } else if (field === 'price') {
+                const val = parseFloat(rawValue);
+                if (isNaN(val) || val < 0) return;
+                item.price = roundTwoDecimals(val);
+            } else if (field === 'qty') {
+                const val = parseInt(rawValue, 10);
+                if (isNaN(val) || val < 1) return;
+                item.qty = val;
+            } else if (field === 'discount') {
+                const val = rawValue === '' ? 0 : parseFloat(rawValue);
+                if (isNaN(val) || val < 0 || val > 100) return;
+                item.discount = roundTwoDecimals(val);
+            }
+
+            const row = shoppingListBody.querySelector(`tr[data-id="${id}"]`);
+            if (row) {
+                const metrics = calculateItemMetrics(item.price, item.qty, item.discount);
+                row.querySelector('.item-final').textContent = formatRM(metrics.finalCost);
+                const savedNote = row.querySelector('.item-saved-note');
+                if (metrics.discountAmount > 0) {
+                    savedNote.textContent = `Saved ${formatRM(metrics.discountAmount)}`;
+                    savedNote.classList.remove('hidden');
+                } else {
+                    savedNote.classList.add('hidden');
+                }
+            }
+
+            updateCalculator();
+        }
+
+        function removeItem(id) {
+            const removed = state.items.find(i => i.id === id);
+            state.items = state.items.filter(i => i.id !== id);
+            renderShoppingList();
+            if (removed) {
+                showToast(`Removed "${removed.name}" from list.`);
+            }
+        }
+
+        function updateLiveItemPreview() {
+            const price = Math.max(0, parseFloat(itemPriceInput.value) || 0);
+            const qty = Math.max(1, parseInt(itemQtyInput.value, 10) || 1);
+            const discount = Math.min(100, Math.max(0, parseFloat(itemDiscountInput.value) || 0));
+
+            const metrics = calculateItemMetrics(price, qty, discount);
+            itemLivePreview.innerHTML = `Calculated Item Cost: <span class="font-extrabold text-[18px] text-brand-forest">${formatRM(metrics.finalCost)}</span>` +
+                (metrics.discountAmount > 0 ? ` <span class="text-brand-secondary font-medium">(saves ${formatRM(metrics.discountAmount)})</span>` : '');
+        }
+
+        // --- 6. ADD ITEM FORM SUBMISSION & VALIDATION (ONLY ON SUBMIT) ---
+        addItemForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            itemFormError.classList.add('hidden');
+
+            const name = itemNameInput.value.trim();
+            const rawPrice = itemPriceInput.value.trim();
+            const rawQty = itemQtyInput.value.trim();
+            const rawDiscount = itemDiscountInput.value.trim();
+
+            const price = parseFloat(rawPrice);
+            const qty = Number(rawQty);
+            const discount = rawDiscount === '' ? 0 : parseFloat(rawDiscount);
+
+            // Validation Checks (Triggered strictly on Add Item button click)
+            if (!name) {
+                showFormError('Please enter an item name.');
+                itemNameInput.focus();
+                return;
+            }
+            if (rawPrice === '' || isNaN(price) || price < 0) {
+                showFormError('Please enter a valid unit price (RM 0.00 or higher).');
+                itemPriceInput.focus();
+                return;
+            }
+            if (rawQty === '' || !Number.isInteger(qty) || qty < 1) {
+                showFormError('Quantity must be a positive whole number (1 or more).');
+                itemQtyInput.focus();
+                return;
+            }
+            if (isNaN(discount) || discount < 0 || discount > 100) {
+                showFormError('Discount percentage must be between 0% and 100%.');
+                itemDiscountInput.focus();
+                return;
+            }
+
+            // Add valid item to state
+            const newItem = {
+                id: Date.now() + Math.floor(Math.random() * 1000),
+                name: name,
+                price: roundTwoDecimals(price),
+                qty: qty,
+                discount: roundTwoDecimals(discount)
+            };
+
+            state.items.push(newItem);
+
+            // Reset input fields for next item
+            itemNameInput.value = '';
+            itemPriceInput.value = '';
+            itemQtyInput.value = '1';
+            itemDiscountInput.value = '';
+            updateLiveItemPreview();
+            itemNameInput.focus();
+
+            renderShoppingList();
+            showToast(`Added "${newItem.name}" to shopping list!`);
+        });
+
+        function showFormError(message) {
+            itemFormError.textContent = message;
+            itemFormError.classList.remove('hidden');
+        }
+
+        // Live preview listeners for Step 2 inputs
+        [itemPriceInput, itemQtyInput, itemDiscountInput].forEach(input => {
+            input.addEventListener('input', updateLiveItemPreview);
+        });
+
+        // --- 7. BUDGET INPUT & QUICK PRESETS ---
+        budgetInput.addEventListener('input', function() {
+            const val = parseFloat(this.value);
+            if (this.value === '' || isNaN(val) || val <= 0) {
+                state.budget = 0;
+                budgetError.classList.remove('hidden');
+            } else {
+                state.budget = roundTwoDecimals(val);
+                budgetError.classList.add('hidden');
+            }
+            updateCalculator();
+        });
+
+        function setQuickBudget(amount) {
+            state.budget = roundTwoDecimals(amount);
+            budgetInput.value = state.budget.toFixed(2);
+            budgetError.classList.add('hidden');
+            updateCalculator();
+            showToast(`Budget set to ${formatRM(state.budget)}`);
+        }
+
+        // --- 8. SIDE-BY-SIDE COMPARE PRODUCT PRICES (INDEPENDENT FEATURE) ---
+        const compareInputs = [
+            'compare-product-name',
+            'storeA-name', 'storeA-size', 'storeA-unit', 'storeA-price',
+            'storeB-name', 'storeB-size', 'storeB-unit', 'storeB-price'
+        ];
+
+        compareInputs.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input', updateComparison);
+                el.addEventListener('change', updateComparison);
+            }
+        });
+
+        /**
+         * Normalizes units to a common base unit for accurate comparison:
+         * - Weight: kg and g -> normalized to 'kg'
+         * - Volume: L and ml -> normalized to 'L'
+         * - Count: pcs -> 'piece'
+         */
+        function normalizeUnitQuantity(size, unit) {
+            if (unit === 'g') {
+                return { baseSize: size / 1000, baseUnit: 'kg', category: 'weight' };
+            }
+            if (unit === 'kg') {
+                return { baseSize: size, baseUnit: 'kg', category: 'weight' };
+            }
+            if (unit === 'ml') {
+                return { baseSize: size / 1000, baseUnit: 'L', category: 'volume' };
+            }
+            if (unit === 'L') {
+                return { baseSize: size, baseUnit: 'L', category: 'volume' };
+            }
+            return { baseSize: size, baseUnit: 'piece', category: 'count' };
+        }
+
+        function evaluateStoreOption(prefix, defaultStoreName) {
+            const nameEl = document.getElementById(`${prefix}-name`);
+            const sizeEl = document.getElementById(`${prefix}-size`);
+            const unitEl = document.getElementById(`${prefix}-unit`);
+            const priceEl = document.getElementById(`${prefix}-price`);
+            const errorEl = document.getElementById(`${prefix}-error`);
+            const unitLabelEl = document.getElementById(`${prefix}-unit-label`);
+            const unitPriceEl = document.getElementById(`${prefix}-unit-price`);
+
+            const storeName = nameEl.value.trim() || defaultStoreName;
+            const rawSize = parseFloat(sizeEl.value);
+            const unit = unitEl.value;
+            const rawPrice = parseFloat(priceEl.value);
+
+            let errorMsg = '';
+            if (isNaN(rawSize) || rawSize <= 0) {
+                errorMsg = 'Product size must be a positive number.';
+            } else if (isNaN(rawPrice) || rawPrice <= 0) {
+                errorMsg = 'Product price must be greater than RM 0.00.';
+            }
+
+            if (errorMsg) {
+                errorEl.textContent = errorMsg;
+                errorEl.classList.remove('hidden');
+                unitPriceEl.textContent = 'RM 0.00';
+                return { valid: false, storeName, rawSize: 0, unit, rawPrice: 0, baseSize: 0, baseUnit: unit, category: '', unitPrice: 0 };
+            }
+
+            errorEl.classList.add('hidden');
+            const normalized = normalizeUnitQuantity(rawSize, unit);
+            const unitPrice = roundTwoDecimals(rawPrice / normalized.baseSize);
+
+            unitLabelEl.textContent = `Price per ${normalized.baseUnit}:`;
+            unitPriceEl.textContent = formatRM(unitPrice);
+
+            return {
+                valid: true,
+                storeName,
+                rawSize,
+                unit,
+                rawPrice: roundTwoDecimals(rawPrice),
+                baseSize: normalized.baseSize,
+                baseUnit: normalized.baseUnit,
+                category: normalized.category,
+                unitPrice
+            };
+        }
+
+        function updateComparison() {
+            const productName = document.getElementById('compare-product-name').value.trim() || 'this product';
+            const storeA = evaluateStoreOption('storeA', 'Store A');
+            const storeB = evaluateStoreOption('storeB', 'Store B');
+
+            const resultBox = document.getElementById('comparison-result-box');
+            const winnerPill = document.getElementById('comparison-winner-pill');
+            const explanationEl = document.getElementById('comparison-explanation');
+            const savingsEl = document.getElementById('comparison-savings-line');
+            const sameQtyEl = document.getElementById('comparison-same-qty-line');
+
+            sameQtyEl.classList.add('hidden');
+
+            if (!storeA.valid || !storeB.valid) {
+                resultBox.className = 'mt-6 rounded-2xl bg-brand-bg border border-slate-300 p-5 sm:p-6';
+                winnerPill.className = 'px-3.5 py-1 rounded-full bg-slate-600 text-white text-[14px] font-bold';
+                winnerPill.textContent = 'Check Inputs';
+                explanationEl.textContent = 'Please enter positive values for product size and price in both stores.';
+                savingsEl.textContent = '';
+                return;
+            }
+
+            // Ensure compatible units (e.g., kg & g, L & ml, or pieces & pieces)
+            if (storeA.category !== storeB.category) {
+                resultBox.className = 'mt-6 rounded-2xl bg-brand-error border border-red-300 p-5 sm:p-6';
+                winnerPill.className = 'px-3.5 py-1 rounded-full bg-red-800 text-white text-[14px] font-bold';
+                winnerPill.textContent = 'Incompatible Units';
+                explanationEl.textContent = `Cannot directly compare ${storeA.unit} and ${storeB.unit}. Please use matching measurement units (e.g., kg/g, L/ml, or pieces).`;
+                savingsEl.textContent = '';
+                return;
+            }
+
+            resultBox.className = 'mt-6 rounded-2xl bg-amber-50 border border-brand-amber/35 p-5 sm:p-6';
+            winnerPill.className = 'px-3.5 py-1 rounded-full bg-brand-amber text-white text-[14px] font-bold';
+
+            const commonUnit = storeA.baseUnit;
+            const unitDiff = roundTwoDecimals(Math.abs(storeA.unitPrice - storeB.unitPrice));
+            const isSameQty = Math.abs(storeA.baseSize - storeB.baseSize) < 0.0001;
+
+            if (storeA.unitPrice < storeB.unitPrice) {
+                winnerPill.textContent = `Best Value: ${storeA.storeName}`;
+                explanationEl.textContent = `${storeA.storeName} offers better value for ${productName} because its price per ${commonUnit} (${formatRM(storeA.unitPrice)}) is lower than ${storeB.storeName} (${formatRM(storeB.unitPrice)}).`;
+                savingsEl.textContent = `You save ${formatRM(unitDiff)} per ${commonUnit} by choosing ${storeA.storeName}.`;
+
+                if (isSameQty) {
+                    const totalDiff = roundTwoDecimals(Math.abs(storeA.rawPrice - storeB.rawPrice));
+                    sameQtyEl.textContent = `Since both options have the same quantity, you save ${formatRM(totalDiff)} in total.`;
+                    sameQtyEl.classList.remove('hidden');
+                }
+            } else if (storeB.unitPrice < storeA.unitPrice) {
+                winnerPill.textContent = `Best Value: ${storeB.storeName}`;
+                explanationEl.textContent = `${storeB.storeName} offers better value for ${productName} because its price per ${commonUnit} (${formatRM(storeB.unitPrice)}) is lower than ${storeA.storeName} (${formatRM(storeA.unitPrice)}).`;
+                savingsEl.textContent = `You save ${formatRM(unitDiff)} per ${commonUnit} by choosing ${storeB.storeName}.`;
+
+                if (isSameQty) {
+                    const totalDiff = roundTwoDecimals(Math.abs(storeA.rawPrice - storeB.rawPrice));
+                    sameQtyEl.textContent = `Since both options have the same quantity, you save ${formatRM(totalDiff)} in total.`;
+                    sameQtyEl.classList.remove('hidden');
+                }
+            } else {
+                winnerPill.textContent = 'Equal Value';
+                explanationEl.textContent = `Both ${storeA.storeName} and ${storeB.storeName} offer the exact same price of ${formatRM(storeA.unitPrice)} per ${commonUnit} for ${productName}.`;
+                savingsEl.textContent = `Difference in unit price: RM 0.00 per ${commonUnit}.`;
+            }
+        }
+
+        // --- 9. SAMPLE DATA, CLEAR LIST & RESET WITH CONFIRMATION ---
+
+        function loadSampleData() {
+            state.budget = 150.00;
+            budgetInput.value = '150.00';
+            budgetError.classList.add('hidden');
+
+            state.items = [
+                { id: 101, name: 'Fragrant White Rice (5kg)', price: 24.90, qty: 1, discount: 10 },
+                { id: 102, name: 'Fresh Full Cream Milk (1L)', price: 7.50, qty: 2, discount: 0 },
+                { id: 103, name: 'Grade A Eggs (30 pcs)', price: 14.20, qty: 1, discount: 5 },
+                { id: 104, name: 'Chicken Breast Fillet (1kg)', price: 16.80, qty: 2, discount: 15 },
+                { id: 105, name: 'Wholemeal Bread Loaf', price: 4.30, qty: 2, discount: 0 }
+            ];
+
+            // Sample Store Comparison (1kg Cooking Oil @ RM7.80 vs 3kg Cooking Oil @ RM21.50)
+            document.getElementById('compare-product-name').value = 'Cooking Oil';
+            document.getElementById('storeA-name').value = 'Store A';
+            document.getElementById('storeA-size').value = '1';
+            document.getElementById('storeA-unit').value = 'kg';
+            document.getElementById('storeA-price').value = '7.80';
+
+            document.getElementById('storeB-name').value = 'Store B';
+            document.getElementById('storeB-size').value = '3';
+            document.getElementById('storeB-unit').value = 'kg';
+            document.getElementById('storeB-price').value = '21.50';
+
+            itemFormError.classList.add('hidden');
+            renderShoppingList();
+            updateComparison();
+            showToast('Sample shopping data loaded!');
+        }
+
+        let pendingModalAction = null;
+
+        function openModal(title, message, onConfirm) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-message').textContent = message;
+            pendingModalAction = onConfirm;
+            const modal = document.getElementById('confirm-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('confirm-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            pendingModalAction = null;
+        }
+
+        document.getElementById('modal-confirm-btn').addEventListener('click', function() {
+            if (typeof pendingModalAction === 'function') {
+                pendingModalAction();
+            }
+            closeModal();
+        });
+
+        function confirmClearList() {
+            if (state.items.length === 0) {
+                showToast('Your shopping list is already empty.');
+                return;
+            }
+            openModal(
+                'Clear Shopping List',
+                'Are you sure you want to remove all items from your shopping list? Your budget setting will remain unchanged.',
+                function() {
+                    state.items = [];
+                    renderShoppingList();
+                    showToast('Shopping list cleared.');
+                }
+            );
+        }
+
+        function openResetModal() {
+            openModal(
+                'Reset Entire Calculator',
+                'Are you sure you want to reset your budget, clear all shopping items, and reset the price comparison?',
+                function() {
+                    state.budget = 100.00;
+                    state.items = [];
+                    budgetInput.value = '100.00';
+                    budgetError.classList.add('hidden');
+
+                    itemNameInput.value = '';
+                    itemPriceInput.value = '';
+                    itemQtyInput.value = '1';
+                    itemDiscountInput.value = '';
+                    itemFormError.classList.add('hidden');
+                    updateLiveItemPreview();
+
+                    document.getElementById('compare-product-name').value = '';
+                    document.getElementById('storeA-name').value = 'Store A';
+                    document.getElementById('storeA-size').value = '1';
+                    document.getElementById('storeA-unit').value = 'kg';
+                    document.getElementById('storeA-price').value = '';
+
+                    document.getElementById('storeB-name').value = 'Store B';
+                    document.getElementById('storeB-size').value = '1';
+                    document.getElementById('storeB-unit').value = 'kg';
+                    document.getElementById('storeB-price').value = '';
+
+                    renderShoppingList();
+                    updateComparison();
+                    showToast('Calculator has been completely reset.');
+                }
+            );
+        }
+
+        // --- 10. TOAST NOTIFICATION SYSTEM ---
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const bgClass = type === 'error' ? 'bg-brand-error text-red-900 border border-red-300' : 'bg-brand-forest text-white';
+            toast.className = `${bgClass} px-4 py-2.5 rounded-xl shadow-lg text-[14px] font-semibold transition-opacity duration-300`;
+            toast.textContent = message;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 2800);
+        }
+
+        // --- 11. ACTIVE NAVIGATION INDICATOR (SCROLL & CLICK TRACKING) ---
+        const navTabs = document.querySelectorAll('.nav-tab');
+        const trackedSections = ['how-to-use-section', 'calculator-section', 'compare-section']
+            .map(id => document.getElementById(id))
+            .filter(Boolean);
+
+        function setActiveNavTab(activeId) {
+            navTabs.forEach(tab => {
+                const isTarget = tab.dataset.section === activeId;
+                const activeColor = tab.dataset.color;
+                tab.style.backgroundColor = activeColor;
+                tab.style.color = '#FFFFFF';
+                if (isTarget) {
+                    tab.classList.add('ring-2', 'ring-offset-2', 'ring-brand-charcoal/30');
+                } else {
+                    tab.classList.remove('ring-2', 'ring-offset-2', 'ring-brand-charcoal/30');
+                }
+            });
+        }
+
+        navTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                setActiveNavTab(tab.dataset.section);
+            });
+        });
+
+        function handleScrollActiveNav() {
+            const scrollPosition = window.scrollY + 180;
+            let currentSectionId = trackedSections[0]?.id || 'how-to-use-section';
+
+            for (const section of trackedSections) {
+                if (section.offsetTop <= scrollPosition) {
+                    currentSectionId = section.id;
+                }
+            }
+            setActiveNavTab(currentSectionId);
+        }
+
+        window.addEventListener('scroll', handleScrollActiveNav, { passive: true });
+
+        // --- 12. INITIALIZE ON PAGE LOAD ---
+        window.addEventListener('DOMContentLoaded', () => {
+            updateLiveItemPreview();
+            renderShoppingList();
+            updateComparison();
+            handleScrollActiveNav();
+        });
+    </script>
+</body>
+</html>
